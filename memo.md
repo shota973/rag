@@ -1,0 +1,3 @@
+ollamaのembedding modelを使ってベクトル化
+docker上のchromadbに保存
+RAGとして利用
