@@ -1,10 +1,11 @@
 import ollama
 import model
+from langchain_core.documents import Document
 
-def embedding(texts: list[str]):
+def embedding(documents: list[Document]):
     collection, num_of_records = model.setup_chroma()
-    for i, text in enumerate(texts):
-        response = ollama.embeddings(model=model.EMBEDDING_MODEL, prompt=text)
+    for i, doc in enumerate(documents):
+        response = ollama.embeddings(model=model.EMBEDDING_MODEL, prompt=doc.page_content)
 
         print(response)
         print("=============")
@@ -14,7 +15,8 @@ def embedding(texts: list[str]):
         collection.add(
             ids=[str(num_of_records + i)],
             embeddings=embeddings,
-            documents=[text]
+            documents=[doc.page_content],
+            metadatas=[doc.metadata]
         )
 
 def main():

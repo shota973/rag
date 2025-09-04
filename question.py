@@ -2,21 +2,30 @@ import ollama
 import model
 import sys
 
-def get_info(prompt: str) -> str:
+def get_info(prompt: str) -> list[str]:
     response = ollama.embed(model=model.EMBEDDING_MODEL, input=prompt)
     print(response['embeddings'], flush=True)
 
     collection, _ = model.setup_chroma()
-    result = collection.query(query_embeddings=response['embeddings'], n_results=5)
+    result = collection.query(query_embeddings=response['embeddings'], n_results=2)
     print(result, flush=True)
-    data = result['documents'][0][0]
-    return data
+
+    docs: list[str] = []
+    for i, meta in enumerate(result['metadatas']):
+        similar_docs = collection.query(query_embeddings=response['embeddings'], n_results=2, where={
+            "$and": meta
+        })
+        print(f"Similar docs for metadata {i+1}:", similar_docs, flush=True)
+        for doc in similar_docs['documents']:
+            if doc not in docs:
+                docs.append(doc)
+
+    return docs
 
 def generate_rag_prompt(prompt: str) -> list[dict[str, str]]:
     info = get_info(prompt)
-    print("Information:", info, flush=True)
     update_prompt = [
-        {"role": "user", "content": "# RAG information\n" + info},
+        {"role": "user", "content": "# RAG information\n" + "\n\n".join(info)},
         {"role": "user", "content": "# question\n" + prompt}
     ]
     print("Update Prompt:", update_prompt, flush=True)
