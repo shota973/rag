@@ -6,6 +6,7 @@ readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
     "chromadb>=1.0.20",
+    "docling>=2.50.0",
     "flet>=0.28.3",
     "flet-desktop>=0.28.3",
     "langchain>=0.3.27",
