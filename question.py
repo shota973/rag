@@ -7,16 +7,23 @@ def get_info(prompt: str) -> list[str]:
     print(response['embeddings'], flush=True)
 
     collection, _ = model.setup_chroma()
-    result = collection.query(query_embeddings=response['embeddings'], n_results=2)
+    result = collection.query(query_embeddings=response['embeddings'], n_results=4)
     print(result, flush=True)
 
     docs: list[str] = []
-    for i, meta in enumerate(result['metadatas']):
-        similar_docs = collection.query(query_embeddings=response['embeddings'], n_results=2, where={
-            "$and": meta
-        })
+    for i, meta in enumerate(result['metadatas'][0]):
+        if len(meta) > 2:
+            similar_docs = collection.query(query_embeddings=response['embeddings'], n_results=4, where={
+                "$and": [meta]
+            })
+        elif len(meta) == 1:
+            similar_docs = collection.query(query_embeddings=response['embeddings'], n_results=4, where=meta)
+        else:
+            docs.append(result['metadatas'][0][i])
+            continue
+        
         print(f"Similar docs for metadata {i+1}:", similar_docs, flush=True)
-        for doc in similar_docs['documents']:
+        for doc in similar_docs['documents'][0]:
             if doc not in docs:
                 docs.append(doc)
 

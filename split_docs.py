@@ -75,10 +75,12 @@ def main():
 
             contents = split_to_chunks(md_splitter, text_splitter, md_text)
             print(f"File: {full_path}, Number of chunks: {len(contents)}", flush=True)
-            for i, chunk in enumerate(contents):
-                preview = chunk.page_content[:30]
-                print(f"  Chunk {i + 1}: {preview}...", flush=True)
-            embedding.embedding(contents)
+            if len(contents) <= 1:
+                print("An error seems to have occurred.\nPlease embed it again.\n")
+                continue
+            with open(r"out/" + file + r"_split.md", "w", encoding="utf-8") as f:
+                for i, chunk in enumerate(contents):
+                   f.write(f"\n\n===== CHUNK{i + 1} =====\n{chunk}")
 
 if __name__ == "__main__":
     main()

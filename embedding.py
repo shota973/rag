@@ -12,12 +12,19 @@ def embedding(documents: list[Document]):
         embeddings = response['embedding']
         print(embeddings)
 
-        collection.add(
-            ids=[str(num_of_records + i)],
-            embeddings=embeddings,
-            documents=[doc.page_content],
-            metadatas=[doc.metadata]
-        )
+        if len(doc.metadata) > 0:
+            collection.add(
+                ids=[str(num_of_records + i)],
+                embeddings=embeddings,
+                documents=[doc.page_content],
+                metadatas=[doc.metadata]
+            )
+        else:
+            collection.add(
+                ids=[str(num_of_records + i)],
+                embeddings=embeddings,
+                documents=[doc.page_content],
+            )
 
 def main():
     test_text = ["Today's weather in Tokyo is cloudy, with a high of 37°C. The chance of precipitation is 30%."]

@@ -18,20 +18,17 @@ mcp_setting_config = load_json_config().get("mcpServers", {})
 print(mcp_setting_config)
 
 def print_messages(result) -> list[list[str]]:
-    print("\n=== Result ===\n")
-    print(result)
     messages = result.get("messages", result)
     if not isinstance(messages, list):
         print("messagesがリストではありません")
         return [["error", ""]]
-    print("\n=== Messages ===\n")
-    print(messages)
-    results = []
+    
     for msg in messages:
         message = ""
         msg_type = msg.get("type") if isinstance(msg, dict) else type(msg).__name__
         if not msg_type and hasattr(msg, "__class__"):
             msg_type = msg.__class__.__name__
+
         print(f"\n=== START {msg_type} ===")
         if isinstance(msg, dict):
             print("{")
@@ -40,9 +37,9 @@ def print_messages(result) -> list[list[str]]:
                 if not is_first_value:
                     print(",")
                 print(f"{k}: {v}")
-                message += f"{k}: {v}\n"
                 is_first_value = False
             print("}")
+
         else:
             keys = vars(msg).keys()
             if "name" in keys and msg.name != None and msg.name != "":
@@ -53,11 +50,7 @@ def print_messages(result) -> list[list[str]]:
                 tool_messages = list(map(lambda x: f"{x['name']} {x['args']}", msg.tool_calls))
                 print("\n".join(tool_messages))
                 
-            message += str(msg) + "\n"
-        results.append([msg_type, message])
         print(f"=== END {msg_type} ===")
-
-    return results
 
 async def create_client():
     llm = ChatOllama(
