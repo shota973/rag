@@ -27,9 +27,8 @@ services:
     volumes:
       - .:/app:delegated            # ローカルソース
       - uv_cache:/root/.cache/uv    # uv キャッシュ
-    # /opt/venv はイメージ内で作成済み。ボリュームで上書きしない。
-    # 初回起動で万一 /opt/venv が空の場合のみ uv sync を実行し、その後アプリを実行。
-    command: ["sh", "-c", "[ -x /opt/venv/bin/python ] || uv sync; python hello.py; tail -f /dev/null"]
+    # 初回起動でpyproject.pyが存在しない(uv initが実行されていない時)uv initを実行、その後アプリを実行。
+    command: ["sh", "-c", "[ -x pyproject.py ] || uv init; [ -x .venv/bin/python ] || uv sync; uv run hello.py; tail -f /dev/null"]
     # 例: API を公開したい場合
     # ports:
     #   - "8000:8000"

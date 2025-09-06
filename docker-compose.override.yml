@@ -1,0 +1,4 @@
+services:
+  app:
+    build:
+      target: uv_sync
