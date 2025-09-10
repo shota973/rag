@@ -1,35 +1,43 @@
+# node:24.7-trixie-slimというimageをもとにimageを構築
+# 以下で作成されるimageにuv_initという名前を付ける
 FROM node:24.7-trixie-slim AS uv_init
 
+# 以下のコマンドなどの実行を/appディレクトリで行う
 WORKDIR /app
 
+# uvのインストールのためにcurlをインストール
 RUN apt-get update && apt-get install -y \
     curl \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
-#uvのインストール(現状の最新版の0.8.15を指定)
+# uvのインストール(現状の最新版の0.8.15を指定)
 RUN curl -LsSf https://astral.sh/uv/0.8.15/install.sh | sh
 # uv, uvxのパスを通す
 ENV PATH="/root/.local/bin:$PATH" \
     UV_CACHE_DIR=/root/.cache/uv \
     UV_LINK_MODE=copy
 
-# アプリ本体を後からコピー
+# アプリ本体をコピー
 COPY . .
 
-# 実行時は既存の永続環境をそのまま利用し、ephemeral 環境を作らない
 CMD ["uv", "run", "hello.py"]
 
+
+# node:24.7-trixie-slimというimageをもとにimageを構築
+# 以下で作成されるimageにuv_syncという名前を付ける
 FROM node:24.7-trixie-slim AS uv_sync
 
+# 以下のコマンドなどの実行を/appディレクトリで行う
 WORKDIR /app
 
+# uvのインストールのためにcurlをインストール
 RUN apt-get update && apt-get install -y \
     curl \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
-#uvのインストール(現状の最新版の0.8.15を指定)
+# uvのインストール(現状の最新版の0.8.15を指定)
 RUN curl -LsSf https://astral.sh/uv/0.8.15/install.sh | sh
 # uv, uvxのパスを通す
 ENV PATH="/root/.local/bin:$PATH" \
@@ -45,5 +53,4 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 # アプリ本体を後からコピー
 COPY . .
 
-# 実行時は既存の永続環境をそのまま利用し、ephemeral 環境を作らない
 CMD ["uv", "run", "hello.py"]

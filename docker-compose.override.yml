@@ -1,4 +1,5 @@
 services:
   app:
     build:
+      # uv_syncという名前のimageを実行
       target: uv_sync

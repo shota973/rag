@@ -1,12 +1,15 @@
 services:
   ollama:
+    # 使用するimageを指定
     image: ollama/ollama:latest
     container_name: ollama
+    # このコンテナのPC上でのport, docker内部のportをそれぞれ11434に設定
     ports:
-      - "11434:11434" # または "0.0.0.0:11434:11434"
+      - "11434:11434"
+    # コンテナを再度起動した際に前回ダウンロードしたモデルを使用できるようにvolumeを使用
     volumes:
       - ollama_data:/root/.ollama
-    # GPUを使用する場合 (NVIDIAの場合) - 必要に応じてコメント解除
+    # GPUを使用する場合 (NVIDIAの場合)　GPUを持たない場合コメントアウトしてください
     deploy:
       resources:
         reservations:
@@ -17,21 +20,26 @@ services:
     restart: always
 
   app:
+	  # 使用するimageにDockerfileで作成されるimageを指定
     build:
       context: .
       dockerfile: Dockerfile
     container_name: app
+    # localのfileのコピー先である/appを作業ディレクトリに指定
     working_dir: /app
+    # ollamaコンテナにアクセスするためのurlを設定
+    # pythonのollamaライブラリの使用時などに設定が必要
     environment:
       - OLLAMA_HOST=http://ollama:11434
+    # /appディレクトリの変更をlocalのコピー元に反映
+    # uv syncでのcacheを保存し次回起動時に利用
     volumes:
       - .:/app:delegated            # ローカルソース
       - uv_cache:/root/.cache/uv    # uv キャッシュ
-    # 初回起動でpyproject.pyが存在しない(uv initが実行されていない時)uv initを実行、その後アプリを実行。
-    command: ["sh", "-c", "[ -x pyproject.py ] || uv init; [ -x .venv/bin/python ] || uv sync; uv run hello.py; tail -f /dev/null"]
-    # 例: API を公開したい場合
-    # ports:
-    #   - "8000:8000"
+    # 初回起動でpyproject.pyが存在しない(uv initが実行されていない時)uv initを実行、その後動作確認をし、containerを起動し続ける。
+    command: ["sh", "-c", "[ -x pyproject.py ] || uv init; uv run hello.py; tail -f /dev/null"]
+
+	# ollamaコンテナが停止した場合appコンテナも停止
     depends_on:
       - ollama
     restart: no
