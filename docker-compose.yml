@@ -44,31 +44,16 @@ services:
       - ollama
     restart: no
 
-  zipkin:
-    image: openzipkin/zipkin
-    ports:
-      - "9411:9411"
-    depends_on: [otel-collector]
-
-  otel-collector:
-    image: otel/opentelemetry-collector-contrib:0.111.0
-    command: ["--config=/otel-collector-config.yaml"]   # パスを明示
-    volumes:
-      - ./otel-collector-config.yaml:/otel-collector-config.yaml  # ${PWD} を避ける
-
   chromadb:
+    # 使用するimageを指定
     image: chromadb/chroma:latest
     container_name: chromadb
+    # このコンテナのPC上でのport, docker内部のportをそれぞれ8000に設定
     ports:
       - "8000:8000"
+    # 保存したデータを次回起動時も保持するようにvolumeを使用
     volumes:
       - chroma_data:/data
-    environment:
-      - CHROMA_OPEN_TELEMETRY__ENDPOINT=http://otel-collector:4317/
-      - CHROMA_OPEN_TELEMETRY__SERVICE_NAME=chroma
-    depends_on:
-      - otel-collector
-      - zipkin
 
 volumes:
   ollama_data:

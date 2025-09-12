@@ -1,5 +1,3 @@
-# 参考 https://flet.dev/docs/tutorials/python-chat
-
 import flet as ft
 import time
 import model
@@ -219,4 +217,3 @@ async def main(page: ft.Page):
 
 if __name__ == "__main__":
     ft.app(target=main)
-
