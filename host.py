@@ -2,7 +2,7 @@ import sys
 import json
 import asyncio
 import model
-import question
+import generate_rag_prompt
 
 from langchain_core.messages import SystemMessage
 from langchain_mcp_adapters.client import MultiServerMCPClient
@@ -69,7 +69,7 @@ async def create_client(mcp_setting_config):
 
 # agentを用いてmessageを送信して返答をprint
 async def send_message(agent, message: str) -> list[list[str]]:
-    update_prompt = question.generate_rag_prompt(message)
+    update_prompt = generate_rag_prompt.generate_rag_prompt(message)
     print(f"\n=== START Information ===\n{update_prompt[0]['content']}\n=== END Information ===", flush=True)
 
     # ReAct エージェントは messages の履歴形式を期待

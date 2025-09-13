@@ -37,7 +37,7 @@ class ChatMessage(ft.Row):
         if user_name:
             return user_name[:1].capitalize()
         else:
-            return "Unknown"  # or any default value you prefer
+            return "Unknown"
 
     def get_avatar_color(self, user_name: str):
         colors_lookup = [
@@ -64,14 +64,17 @@ async def main(page: ft.Page):
     ssh = paramiko.SSHClient()
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
+    # ssh_config.pyに記載した情報をもとにSSH接続を確立 timeoutは120秒に設定
     ssh.connect(ssh_config.host, username=ssh_config.username, password=ssh_config.password, timeout=120.0)
     
+    # ssh先でコンテナを起動
     _, out, _ = ssh.exec_command(ssh_config.create_container_cmd, get_pty=True)
     for line in out:
         print(line)
 
     def send_message_click(e):
         if new_message.value != "":
+            # ユーザーメッセージをチャットに追加, formをクリア
             send_prompt = repr(new_message.value)
             add_message(
                 Message(
@@ -89,6 +92,7 @@ async def main(page: ft.Page):
                     "Loading...",
                 )
             )
+            # appコンテナのbashを開き、ユーザーの入力を付加してhost.pyを実行
             stdin, stdout, stderr = ssh.exec_command(ssh_config.enter_app_cmd, get_pty=True)
             stdin.write(ssh_config.run_app_cmd(send_prompt))
             stdin.close()
@@ -99,6 +103,7 @@ async def main(page: ft.Page):
             print(errorMes)
             print(outMes)
 
+            # 標準出力から"=== START ～～ ==="などを目印にメッセージを抽出
             start_aiMeses = [i + 1 for i, x in enumerate(outMes) if x == "=== START AIMessage ==="]
             end_aiMeses = [i for i, x in enumerate(outMes) if x == "=== END AIMessage ==="]
             aiMeses = [{"name": model.CHAT_MODEL, "index": start_aiMeses[i], "content": outMes[start_aiMeses[i]:end_aiMeses[i]]} for i in range(min(len(start_aiMeses), len(end_aiMeses)))]
@@ -111,6 +116,7 @@ async def main(page: ft.Page):
             end_infomations = [i for i, x in enumerate(outMes) if x == "=== END Information ==="]
             infomations = [{"name": "RAG information", "index": start_infomations[i], "content": outMes[start_infomations[i]:end_infomations[i]]} for i in range(min(len(start_infomations), len(end_infomations)))]
 
+            # メッセージをindexでソートして標準出力の順番通りにチャットに追加
             messages = aiMeses + toolMeses + infomations
             sorted_messages = sorted(messages, key=lambda x: x["index"])
 
@@ -136,17 +142,19 @@ async def main(page: ft.Page):
         page.update()
         return m
 
+    # SSH切断、コンテナの停止用の関数
     def close_ssh_client(e):
         close_popup.content = ft.Text("loading...")
         page.update()
 
-        _, _, closeerr = ssh.exec_command('cd Desktop/ollama/rag; docker compose down', get_pty=True)
+        _, _, closeerr = ssh.exec_command(ssh_config.stop_container_cmd, get_pty=True)
         errMes = [line.strip() for line in closeerr]
         if len(errMes) > 0:
             close_popup.title = ft.Text("ERROR occurred")
             close_popup.content = ft.Text(" ".join(errMes))
         ssh.close()
 
+        # 正常に切断、コンテナ停止できた場合、ダイアログを閉じてチャットにメッセージを追加
         close_dlg(e)
         add_message(
             Message(

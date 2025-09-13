@@ -20,7 +20,7 @@ services:
     restart: always
 
   app:
-	  # 使用するimageにDockerfileで作成されるimageを指定
+    # 使用するimageにDockerfileで作成されるimageを指定
     build:
       context: .
       dockerfile: Dockerfile
@@ -39,7 +39,7 @@ services:
     # 初回起動でpyproject.pyが存在しない(uv initが実行されていない時)uv initを実行、その後動作確認をし、containerを起動し続ける。
     command: ["sh", "-c", "[ -x pyproject.py ] || uv init; uv run hello.py; tail -f /dev/null"]
 
-	# ollamaコンテナが停止した場合appコンテナも停止
+    # ollamaコンテナが停止した場合appコンテナも停止
     depends_on:
       - ollama
     restart: no
