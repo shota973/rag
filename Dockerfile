@@ -18,10 +18,8 @@ ENV PATH="/root/.local/bin:$PATH" \
     UV_CACHE_DIR=/root/.cache/uv \
     UV_LINK_MODE=copy
 
-# アプリ本体をコピー
+# ローカルの作業ディレクトリ内のファイルををコピー
 COPY . .
-
-CMD ["uv", "run", "hello.py"]
 
 
 # node:24.7-trixie-slimというimageをもとにimageを構築
@@ -46,11 +44,11 @@ ENV PATH="/root/.local/bin:$PATH" \
 
 # 依存解決用ファイルのみを先にコピー
 COPY pyproject.toml uv.lock* ./
-# 依存を同期して仮想環境を構築（cacheを保存）
+# 仮想環境を構築（cacheを保存）
 RUN --mount=type=cache,target=/root/.cache/uv \
     (uv sync --frozen || uv sync)
 
-# アプリ本体を後からコピー
+# ローカルの作業ディレクトリ内のファイルををコピー
 COPY . .
 
 CMD ["uv", "run", "hello.py"]

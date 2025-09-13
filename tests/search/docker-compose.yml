@@ -25,10 +25,10 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: app
-    # localのfileのコピー先である/appを作業ディレクトリに指定
+    # ローカルのファイルのコピー先である/appを作業ディレクトリに指定
     working_dir: /app
     # ollamaコンテナにアクセスするためのurlを設定
-    # pythonのollamaライブラリの使用時などに設定が必要
+    # ollamaライブラリの使用時などに設定が必要
     environment:
       - OLLAMA_HOST=http://ollama:11434
     # /appディレクトリの変更をlocalのコピー元に反映
@@ -36,7 +36,7 @@ services:
     volumes:
       - .:/app:delegated            # ローカルソース
       - uv_cache:/root/.cache/uv    # uv キャッシュ
-    # 初回起動でpyproject.pyが存在しない(uv initが実行されていない時)uv initを実行、その後動作確認をし、containerを起動し続ける。
+    # pyproject.pyが存在しない(uv initが実行されていない時)uv initを実行、その後動作確認をし、コンテナを起動し続ける。
     command: ["sh", "-c", "[ -x pyproject.py ] || uv init; uv run hello.py; tail -f /dev/null"]
 
     # ollamaコンテナが停止した場合appコンテナも停止

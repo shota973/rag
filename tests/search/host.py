@@ -9,48 +9,12 @@ from langchain_mcp_adapters.client import MultiServerMCPClient
 from langchain_ollama import ChatOllama
 from langgraph.prebuilt import create_react_agent
 
-# model.py で定義したCONFIG_PATHの内容を取得
+# mcp_setting.jsonの内容を取得
 def load_json_config(path=model.CONFIG_PATH):
     with open(path, "r", encoding="utf-8") as f:
         return json.load(f)
 
-# ReAct agentからの返答を出力
-def print_messages(result) -> list[list[str]]:
-    messages = result.get("messages", result)
-    if not isinstance(messages, list):
-        print("messagesがリストではありません")
-        return [["error", ""]]
-
-    for msg in messages:
-        message = ""
-        msg_type = msg.get("type") if isinstance(msg, dict) else type(msg).__name__
-        if not msg_type and hasattr(msg, "__class__"):
-            msg_type = msg.__class__.__name__
-
-        print(f"\n=== START {msg_type} ===")
-        if isinstance(msg, dict):
-            print("{")
-            is_first_value = True
-            for k, v in msg.items():
-                if not is_first_value:
-                    print(",")
-                print(f"{k}: {v}")
-                is_first_value = False
-            print("}")
-
-        else:
-            keys = vars(msg).keys()
-            if "name" in keys and msg.name != None and msg.name != "":
-                print(f"tool: {msg.name} ")
-            if "content" in keys and msg.content != "":
-                print(msg.content)
-            if "tool_calls" in keys and len(msg.tool_calls) > 0:
-                tool_messages = list(map(lambda x: f"{x['name']} {x['args']}", msg.tool_calls))
-                print("\n".join(tool_messages))
-                
-        print(f"=== END {msg_type} ===")
-
-# clientやReAct agentの作成
+# mcp clientやReAct agentの作成
 async def create_client(mcp_setting_config):
     llm = ChatOllama(
         model = model.CHAT_MODEL,
@@ -77,6 +41,28 @@ async def send_message(agent, message: str) -> list[list[str]]:
     results = print_messages(result)
     return results
 
+# ReAct agentからの返答を出力
+def print_messages(result) -> list[list[str]]:
+    messages = result.get("messages", result)
+
+    for msg in messages:
+        msg_type = type(msg).__name__
+        if not msg_type and hasattr(msg, "__class__"):
+            msg_type = msg.__class__.__name__
+
+        print(f"\n=== START {msg_type} ===")
+
+        keys = vars(msg).keys()
+        if "name" in keys and msg.name != None and msg.name != "":
+            print(f"tool: {msg.name} ")
+        if "content" in keys and msg.content != "":
+            print(msg.content)
+        if "tool_calls" in keys and len(msg.tool_calls) > 0:
+            tool_messages = list(map(lambda x: f"{x['name']} {x['args']}", msg.tool_calls))
+            print("\n".join(tool_messages))
+
+        print(f"=== END {msg_type} ===")
+
 async def main():
     # mcp_setting.jsonの読み込み
     mcp_setting_config = load_json_config().get("mcpServers", {})
@@ -87,10 +73,10 @@ async def main():
     args = sys.argv
     if len(args) >= 2:
         prompt = " ".join(args[1:])
-    
+
     # mcpクライアント、mcpホストの作成
     agent = await create_client(mcp_setting_config)
-    # promptを送信、メッセージのprint
+    # promptを送信、メッセージの出力
     await send_message(agent, prompt)
 
 if __name__ == "__main__":

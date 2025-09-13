@@ -19,20 +19,20 @@ headers_to_split_on = [
     ("###", "Header 3"),
 ]
 
-# markitdownを使用した変換
-def docs_to_md(markitdown: MarkItDown, file_path: str) -> str:
-    try:
-        result = markitdown.convert(file_path)  # DocumentConverterResult
-        return result.text_content or ""
-    except Exception as e:
-        print(f"[WARN] convert失敗: {file_path}: {e}", flush=True)
-        return ""
-
 # doclingを使用した変換
 def pdf_to_md(pdf_converter: DocumentConverter, file_path: str) -> str:
     try:
         result = pdf_converter.convert(file_path)  # DocumentConverterResult
         return result.document.export_to_markdown() or ""
+    except Exception as e:
+        print(f"[WARN] convert失敗: {file_path}: {e}", flush=True)
+        return ""
+
+# markitdownを使用した変換
+def docs_to_md(markitdown: MarkItDown, file_path: str) -> str:
+    try:
+        result = markitdown.convert(file_path)  # DocumentConverterResult
+        return result.text_content or ""
     except Exception as e:
         print(f"[WARN] convert失敗: {file_path}: {e}", flush=True)
         return ""

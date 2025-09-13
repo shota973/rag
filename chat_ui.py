@@ -4,13 +4,14 @@ import model
 import paramiko
 import ssh_config
 
+# メッセージに必要な情報を格納するためのクラス
 class Message:
     def __init__(self, user_name: str, text: str):
         self.user_name = user_name
         self.text = text
         self.message_type = "chat"
 
-
+# チャットUIの各メッセージを作成するクラス
 class ChatMessage(ft.Row):
     def __init__(self, message: Message):
         super().__init__()
@@ -64,7 +65,7 @@ async def main(page: ft.Page):
     ssh = paramiko.SSHClient()
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
-    # ssh_config.pyに記載した情報をもとにSSH接続を確立 timeoutは120秒に設定
+    # ssh_config.pyに記載した情報をもとにSSH接続を確立
     ssh.connect(ssh_config.host, username=ssh_config.username, password=ssh_config.password, timeout=120.0)
     
     # ssh先でコンテナを起動
@@ -72,7 +73,8 @@ async def main(page: ft.Page):
     for line in out:
         print(line)
 
-    def send_message_click(e):
+    # メッセージ送信を行う関数
+    def send_message(e):
         if new_message.value != "":
             # ユーザーメッセージをチャットに追加, formをクリア
             send_prompt = repr(new_message.value)
@@ -120,6 +122,7 @@ async def main(page: ft.Page):
             messages = aiMeses + toolMeses + infomations
             sorted_messages = sorted(messages, key=lambda x: x["index"])
 
+            # 各メッセージをチャットに追加
             if len(errorMes) > 0:
                 add_message(
                     Message(
@@ -136,6 +139,7 @@ async def main(page: ft.Page):
                 )
             page.update()
 
+    # チャットにメッセージを追加する関数
     def add_message(message: Message) -> ChatMessage:
         m = ChatMessage(message)
         chat.controls.append(m)
@@ -165,18 +169,19 @@ async def main(page: ft.Page):
         close_button.icon_color = ft.Colors.SECONDARY
         page.update()
 
+    # ssh切断時に表示するダイアログを閉じる関数
     def close_dlg(e):
         close_popup.open = False
         page.update()
 
-    # Chat messages
+    # メッセージ一覧を表示する要素
     chat = ft.ListView(
         expand=1,
         spacing=10,
         auto_scroll=True,
     )
 
-    # A new message entry form
+    # メッセージ入力フォーム
     new_message = ft.TextField(
         hint_text="shift + enterで改行",
         autofocus=True,
@@ -185,9 +190,10 @@ async def main(page: ft.Page):
         max_lines=5,
         filled=True,
         expand=1,
-        on_submit=send_message_click,
+        on_submit=send_message,
     )
 
+    # SSH切断、コンテナ停止用のダイアログとボタン
     close_popup = ft.AlertDialog(
         modal=True,
         title=ft.Text("Down container and Close SSH"),
@@ -199,14 +205,15 @@ async def main(page: ft.Page):
         actions_alignment=ft.MainAxisAlignment.END,
     )
 
+    # SSH切断、コンテナ停止用のpopupを表示するボタン
     close_button = ft.IconButton(
         icon=ft.Icons.DESKTOP_ACCESS_DISABLED_ROUNDED,
         icon_color=ft.Colors.RED,
-        tooltip="Send message",
+        tooltip="Close SSH",
         on_click=lambda e: page.open(close_popup),
     )
 
-    # Add everything to the page
+    # 各要素からページを作成
     page.add(
         ft.Container(
             content=chat,
