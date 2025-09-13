@@ -1,6 +1,7 @@
 import ollama
-import model
 import sys
+import model
+import chroma_util
 
 # chroma DBからpromptを用いた検索により関連情報を取得し、RAGのプロンプトを生成する
 def get_info(prompt: str) -> list[str]:
@@ -9,7 +10,7 @@ def get_info(prompt: str) -> list[str]:
     print(response['embeddings'], flush=True)
 
     # promptの埋め込みベクトルを用いてChroma DBから関連情報を取得
-    collection, _ = model.setup_chroma()
+    collection, _ = chroma_util.setup_chroma()
     result = collection.query(query_embeddings=response['embeddings'], n_results=4)
     print(result, flush=True)
 
