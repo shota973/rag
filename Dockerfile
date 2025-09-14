@@ -5,18 +5,20 @@ FROM node:24.7-trixie-slim AS uv_init
 # 以下のコマンドなどの実行を/appディレクトリで行う
 WORKDIR /app
 
-# uvのインストールのためにcurlをインストール
+# uvのインストールのためにcurlをインストール ファイル操作できるようにvimをインストール
 RUN apt-get update && apt-get install -y \
     curl \
+    vim \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
 # uvのインストール(現状の最新版の0.8.15を指定)
 RUN curl -LsSf https://astral.sh/uv/0.8.15/install.sh | sh
-# uv, uvxのパスを通す
+# uv, uvxのパスを通す 日本語を表示できるようにLANGを設定
 ENV PATH="/root/.local/bin:$PATH" \
     UV_CACHE_DIR=/root/.cache/uv \
-    UV_LINK_MODE=copy
+    UV_LINK_MODE=copy \
+    LANG=C.utf8
 
 # ローカルの作業ディレクトリ内のファイルををコピー
 COPY . .
@@ -29,18 +31,20 @@ FROM node:24.7-trixie-slim AS uv_sync
 # 以下のコマンドなどの実行を/appディレクトリで行う
 WORKDIR /app
 
-# uvのインストールのためにcurlをインストール
+# uvのインストールのためにcurlをインストール ファイル操作できるようにvimをインストール
 RUN apt-get update && apt-get install -y \
     curl \
+    vim \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
 # uvのインストール(現状の最新版の0.8.15を指定)
 RUN curl -LsSf https://astral.sh/uv/0.8.15/install.sh | sh
-# uv, uvxのパスを通す
+# uv, uvxのパスを通す 日本語を表示できるようにLANGを設定
 ENV PATH="/root/.local/bin:$PATH" \
     UV_CACHE_DIR=/root/.cache/uv \
-    UV_LINK_MODE=copy
+    UV_LINK_MODE=copy \
+    LANG=C.utf8
 
 # 依存解決用ファイルのみを先にコピー
 COPY pyproject.toml uv.lock* ./
