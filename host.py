@@ -33,11 +33,11 @@ async def create_client(mcp_setting_config):
     return agent
 
 # agentを用いてmessageを送信して返答をprint
-async def send_message(agent, window: str, message: str) -> list[dict[str, str]]:
-    cache_file = r"/root/message_cache/" + window
+async def send_message(agent, session: str, message: str) -> list[dict[str, str]]:
+    cache_file = r"/root/message_cache/" + session
     message_history = []
 
-    if window != "" and os.path.isfile(cache_file):
+    if session != "" and os.path.isfile(cache_file):
         with open(cache_file, "r", encoding="utf-8") as f:
             message_history = json.load(f)
     
@@ -51,7 +51,7 @@ async def send_message(agent, window: str, message: str) -> list[dict[str, str]]
     message_history += results
 
     # windowが指定されていた場合はキャッシュファイルに追記
-    if window == "":
+    if session == "":
         return
     with open(cache_file, "w", encoding="utf-8") as f:
         json.dump(message_history, f, ensure_ascii=False, indent=4)
@@ -84,6 +84,7 @@ def print_messages(result) -> list[dict[str, str]]:
             # print("\n".join(tool_messages))
             formated_msg += "\n".join(tool_messages) + "\n"
 
+        formated_msg = formated_msg.rstrip()
         print(formated_msg)
         print(f"=== END {msg_type} ===")
 
@@ -107,16 +108,24 @@ async def main():
     print(mcp_setting_config)
 
     # コマンドライン引数がある場合は送信するプロンプトを設定（存在しない場合は「こんにちは」を送信）
-    prompt = "こんにちは"
+    prompt = ""
+    session = ""
     args = sys.argv
-    if len(args) >= 3:
-        window = args[1]
-        prompt = " ".join(args[2:])
+    if len(args) >= 2:
+        prompt = ""
+        for i in range(1, len(args)):
+            if args[i].startswith("--session:"):
+                session = args[i].removeprefix("--session:")
+            else:
+                prompt += args[i]
+
+    if prompt == "":
+        prompt = "こんにちは"
 
     # mcpクライアント、mcpホストの作成
     agent = await create_client(mcp_setting_config)
     # promptを送信、メッセージの出力
-    await send_message(agent, window, prompt)
+    await send_message(agent, session, prompt)
 
 if __name__ == "__main__":
     asyncio.run(main())

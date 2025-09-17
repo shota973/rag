@@ -20,9 +20,11 @@ ENV PATH="/root/.local/bin:$PATH" \
     UV_LINK_MODE=copy \
     LANG=C.utf8
 
+# session管理用にメッセージ履歴を保存するディレクトリを作成
+RUN mkdir /root/message_cache
+
 # ローカルの作業ディレクトリ内のファイルををコピー
 COPY . .
-
 
 # node:24.7-trixie-slimというimageをもとにimageを構築
 # 以下で作成されるimageにuv_syncという名前を付ける
@@ -51,6 +53,9 @@ COPY pyproject.toml uv.lock* ./
 # 仮想環境を構築（cacheを保存）
 RUN --mount=type=cache,target=/root/.cache/uv \
     (uv sync --frozen || uv sync)
+
+# session管理用にメッセージ履歴を保存するディレクトリを作成
+RUN mkdir /root/message_cache
 
 # ローカルの作業ディレクトリ内のファイルををコピー
 COPY . .

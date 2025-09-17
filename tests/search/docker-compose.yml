@@ -55,6 +55,7 @@ services:
     volumes:
       - chroma_data:/data
 
+# 既存の起動中のコンテナが同名のvolumeを使用していた場合、名前を変更して使用してください
 volumes:
   ollama_data:
   chroma_data:
